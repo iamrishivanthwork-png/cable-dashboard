@@ -6,13 +6,14 @@ import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { CheckCircle, XCircle, Clock, FileText, Copy } from "lucide-react"
+import { CheckCircle, XCircle, Clock, FileText, Copy, Eye } from "lucide-react"
 import { useForm, Controller } from "react-hook-form"
 import { z } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { toast } from "sonner"
 import Receipt from "./Receipt"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
+import { useNavigate } from "react-router-dom"
 
 
 const paymentSchema = z.object({
@@ -44,6 +45,7 @@ function getTodayDate () {
 }
 
 export default function Payments () {
+  const navigate = useNavigate()
   const [customers, setCustomers] = useState<CustomerWithStatus[]>([])
   const [loading, setLoading] = useState(true)
   const [month, setMonth] = useState(getCurrentMonth())
@@ -410,12 +412,24 @@ export default function Payments () {
                             <XCircle className="w-4 h-4 mr-1" />
                             Undo
                           </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => navigate(`/customers/${customer.id}`)}
+                            className="text-slate-400 hover:text-blue-400 text-xs"
+                          >
+                            <Eye className="w-4 h-4" />
+                          </Button>
                         </div>
                       ) : (
                         <>
                           <Button
                             size="sm"
                             onClick={() => {
+                              if (month > getCurrentMonth()) {
+                                toast.error("Cannot record payment for a future month!")
+                                return
+                              }
                               setSelectedCustomer(customer)
                               setIsPayDialogOpen(true)
                             }}
@@ -427,7 +441,13 @@ export default function Payments () {
                           <Button
                             size="sm"
                             variant="ghost"
-                            onClick={() => handleTogglePending(customer)}
+                            onClick={() => {
+                              if (month > getCurrentMonth()) {
+                                toast.error("Cannot set pending for a future month!")
+                                return
+                              }
+                              handleTogglePending(customer)
+                            }}
                             className={`text-xs ${customer.pending ? "text-yellow-300" : "text-yellow-600 hover:text-yellow-400"}`}
                           >
                             <Clock className="w-4 h-4 mr-1" />

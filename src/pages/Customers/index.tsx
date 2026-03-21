@@ -7,11 +7,13 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Plus, Pencil, Trash2, Copy } from "lucide-react"
+import { Plus, Pencil, Trash2, Copy, Eye } from "lucide-react"
 import { toast } from "sonner"
 import CustomerForm, { CustomerFormData } from "./CustomerForm"
+import { useNavigate } from "react-router-dom"
 
 export default function Customers () {
+  const navigate = useNavigate()
   const [customers, setCustomers] = useState<Customer[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState("")
@@ -210,6 +212,14 @@ export default function Customers () {
                   <td className="text-slate-300 px-4 py-3">{customer.town}</td>
                   <td className="px-4 py-3">
                     <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => navigate(`/customers/${customer.id}`)}
+                        className="text-slate-400 hover:text-blue-400"
+                      >
+                        <Eye className="w-4 h-4" />
+                      </Button>
                       <Button
                         size="sm"
                         variant="ghost"
