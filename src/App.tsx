@@ -9,6 +9,7 @@ import Payments from "@/pages/Payments"
 import Dashboard from "@/pages/dashboard"
 import Login from "@/pages/Login"
 import CustomerDetail from "./pages/CustomerDetail"
+import PaidReports from "./pages/PaidReports"
 
 function App () {
   const [session, setSession] = useState<Session | null>(null)
@@ -57,6 +58,7 @@ function App () {
             <Route path="/customers" element={<Customers />} />
             <Route path="/customers/:id" element={<CustomerDetail />} />
             <Route path="/payments" element={<Payments />} />
+            <Route path="/reports" element={<PaidReports />} />
             <Route path="*" element={<Navigate to="/" />} />
           </Routes>
         </main>

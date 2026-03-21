@@ -105,13 +105,22 @@ export default function Payments () {
   async function handleMarkPaid (data: PaymentFormData) {
     if (!selectedCustomer) return
     setFormLoading(true)
+
     if (selectedCustomer.pending) {
       await supabase.from("pending_payments").delete().eq("id", selectedCustomer.pending.id)
     }
+
+    const { data: userData } = await supabase.auth.getUser()
+
     const { error } = await supabase.from("payments").insert([{
-      customer_id: selectedCustomer.id, month,
-      amount: data.amount, payment_mode: data.payment_mode, paid_date: data.paid_date,
+      customer_id: selectedCustomer.id,
+      month,
+      amount: data.amount,
+      payment_mode: data.payment_mode,
+      paid_date: data.paid_date,
+      recorded_by: userData.user?.id ?? null,
     }])
+
     if (!error) {
       await fetchData()
       setIsPayDialogOpen(false)
@@ -120,6 +129,7 @@ export default function Payments () {
     } else {
       toast.error("Failed to record payment")
     }
+
     setFormLoading(false)
   }
 

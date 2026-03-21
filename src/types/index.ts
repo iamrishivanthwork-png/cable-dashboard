@@ -16,6 +16,13 @@ export interface Payment {
   amount: number
   payment_mode: "cash" | "gpay"
   bill_number: string
+  recorded_by: string | null
+}
+
+export interface Profile {
+  id: string
+  full_name: string
+  role: string
 }
 
 export interface PendingPayment {
