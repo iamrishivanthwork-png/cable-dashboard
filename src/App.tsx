@@ -1,13 +1,23 @@
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
+import { BrowserRouter, Routes, Route } from "react-router-dom"
+import Sidebar from "@/components/layout/index"
+import Customers from "@/pages/Customers"
+import Payments from "@/pages/Payments"
+import Dashboard from "./pages/dashboard"
 
-function App() {
+function App () {
   return (
-    <div className="min-h-screen bg-slate-950 flex items-center justify-center gap-4">
-      <Button>Mark as Paid</Button>
-      <Badge variant="destructive">Unpaid</Badge>
-      <Badge className="bg-green-600">Paid</Badge>
-    </div>
+    <BrowserRouter>
+      <div className="flex min-h-screen bg-slate-950">
+        <Sidebar />
+        <main className="flex-1 p-8">
+          <Routes>
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/customers" element={<Customers />} />
+            <Route path="/payments" element={<Payments />} />
+          </Routes>
+        </main>
+      </div>
+    </BrowserRouter>
   )
 }
 
