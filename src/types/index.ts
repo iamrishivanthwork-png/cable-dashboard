@@ -15,6 +15,7 @@ export interface Payment {
   paid_date: string
   amount: number
   payment_mode: "cash" | "gpay"
+  bill_number: string
 }
 
 export interface PendingPayment {

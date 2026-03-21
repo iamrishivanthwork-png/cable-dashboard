@@ -4,9 +4,11 @@ import { Customer } from "@/types"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Plus, Pencil, Trash2, Copy } from "lucide-react"
+import { toast } from "sonner"
 import CustomerForm, { CustomerFormData } from "./CustomerForm"
 
 export default function Customers () {
@@ -19,7 +21,9 @@ export default function Customers () {
   const [streets, setStreets] = useState<string[]>([])
   const [isAddOpen, setIsAddOpen] = useState(false)
   const [isEditOpen, setIsEditOpen] = useState(false)
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false)
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null)
+  const [customerToDelete, setCustomerToDelete] = useState<Customer | null>(null)
   const [formLoading, setFormLoading] = useState(false)
 
   useEffect(() => {
@@ -58,6 +62,9 @@ export default function Customers () {
     if (!error) {
       await fetchCustomers()
       setIsAddOpen(false)
+      toast.success("Customer added successfully!")
+    } else {
+      toast.error("Failed to add customer")
     }
     setFormLoading(false)
   }
@@ -72,14 +79,27 @@ export default function Customers () {
     if (!error) {
       await fetchCustomers()
       setIsEditOpen(false)
+      toast.success("Customer updated!")
+    } else {
+      toast.error("Failed to update customer")
     }
     setFormLoading(false)
   }
 
-  async function handleDelete (id: string) {
-    if (!confirm("Are you sure you want to delete this customer?")) return
-    const { error } = await supabase.from("customers").delete().eq("id", id)
-    if (!error) await fetchCustomers()
+  async function confirmDelete () {
+    if (!customerToDelete) return
+    const { error } = await supabase
+      .from("customers")
+      .delete()
+      .eq("id", customerToDelete.id)
+    if (!error) {
+      await fetchCustomers()
+      toast.success("Customer deleted")
+    } else {
+      toast.error("Failed to delete customer")
+    }
+    setIsDeleteOpen(false)
+    setCustomerToDelete(null)
   }
 
   const filtered = customers.filter((c) => {
@@ -107,6 +127,7 @@ export default function Customers () {
       {/* Search + Town Filter */}
       <div className="flex gap-3 mb-4 flex-wrap">
         <Input
+          type="text"
           placeholder="Search by name or box number..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
@@ -125,14 +146,12 @@ export default function Customers () {
         </Select>
       </div>
 
-      {/* Street Tabs — only shows when a town is selected */}
+      {/* Street Tabs */}
       {townFilter !== "all" && streets.length > 0 && (
         <div className="flex gap-2 mb-4 flex-wrap">
           <button
             onClick={() => setStreetFilter("all")}
-            className={`px-3 py-1 rounded-full text-sm transition-colors ${streetFilter === "all"
-                ? "bg-blue-600 text-white"
-                : "bg-slate-800 text-slate-300 hover:bg-slate-700"
+            className={`px-3 py-1 rounded-full text-sm transition-colors ${streetFilter === "all" ? "bg-blue-600 text-white" : "bg-slate-800 text-slate-300 hover:bg-slate-700"
               }`}
           >
             All Streets
@@ -141,9 +160,7 @@ export default function Customers () {
             <button
               key={street}
               onClick={() => setStreetFilter(street)}
-              className={`px-3 py-1 rounded-full text-sm transition-colors ${streetFilter === street
-                  ? "bg-blue-600 text-white"
-                  : "bg-slate-800 text-slate-300 hover:bg-slate-700"
+              className={`px-3 py-1 rounded-full text-sm transition-colors ${streetFilter === street ? "bg-blue-600 text-white" : "bg-slate-800 text-slate-300 hover:bg-slate-700"
                 }`}
             >
               {street}
@@ -170,10 +187,7 @@ export default function Customers () {
             </thead>
             <tbody>
               {filtered.map((customer, index) => (
-                <tr
-                  key={customer.id}
-                  className={index % 2 === 0 ? "bg-slate-900" : "bg-slate-950"}
-                >
+                <tr key={customer.id} className={index % 2 === 0 ? "bg-slate-900" : "bg-slate-950"}>
                   <td className="text-white px-4 py-3">{customer.name}</td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2">
@@ -183,7 +197,7 @@ export default function Customers () {
                       <button
                         onClick={() => {
                           navigator.clipboard.writeText(customer.box_number)
-                          alert(`Copied: ${customer.box_number}`)
+                          toast.success(`Copied: ${customer.box_number}`)
                         }}
                         className="text-slate-500 hover:text-white transition-colors"
                         title="Copy box number"
@@ -210,7 +224,10 @@ export default function Customers () {
                       <Button
                         size="sm"
                         variant="ghost"
-                        onClick={() => handleDelete(customer.id)}
+                        onClick={() => {
+                          setCustomerToDelete(customer)
+                          setIsDeleteOpen(true)
+                        }}
                         className="text-slate-400 hover:text-red-400"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -227,7 +244,7 @@ export default function Customers () {
       {/* Add Customer Dialog */}
       <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
         <DialogContent className="bg-slate-900 border-slate-700">
-          <DialogHeader>
+          <DialogHeader className={"add-new-header"}>
             <DialogTitle className="text-white">Add New Customer</DialogTitle>
           </DialogHeader>
           <CustomerForm onSubmit={handleAdd} isLoading={formLoading} />
@@ -237,7 +254,7 @@ export default function Customers () {
       {/* Edit Customer Dialog */}
       <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
         <DialogContent className="bg-slate-900 border-slate-700">
-          <DialogHeader>
+          <DialogHeader className={"edit-header"}>
             <DialogTitle className="text-white">Edit Customer</DialogTitle>
           </DialogHeader>
           <CustomerForm
@@ -247,6 +264,52 @@ export default function Customers () {
           />
         </DialogContent>
       </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
+        <AlertDialogContent className="bg-slate-900 border-slate-700">
+          <AlertDialogHeader className={"delete-header"}>
+            <AlertDialogTitle className="text-white">Delete Customer?</AlertDialogTitle>
+            <AlertDialogDescription className={"child-data"} asChild>
+              <div className="space-y-3">
+                <p className="text-slate-400">This will permanently delete:</p>
+                {customerToDelete && (
+                  <div className="bg-slate-800 rounded-lg p-3 space-y-1">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-slate-400">Name</span>
+                      <span className="text-white font-medium">{customerToDelete.name}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-slate-400">Box Number</span>
+                      <span className="text-white font-medium">{customerToDelete.box_number}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-slate-400">Street</span>
+                      <span className="text-white font-medium">{customerToDelete.street}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-slate-400">Town</span>
+                      <span className="text-white font-medium">{customerToDelete.town}</span>
+                    </div>
+                  </div>
+                )}
+                <p className="text-red-400 text-sm">This action cannot be undone.</p>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className={"footer"}>
+            <AlertDialogCancel className="border-slate-700 text-slate-300 hover:bg-slate-800">
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDelete}
+              className="bg-red-600 hover:bg-red-700 text-white"
+            >
+              Yes, Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

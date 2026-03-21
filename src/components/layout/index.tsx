@@ -1,5 +1,6 @@
-import { LayoutDashboard, Users, CreditCard } from "lucide-react"
+import { LayoutDashboard, Users, CreditCard, LogOut } from "lucide-react"
 import { Link, useLocation } from "react-router-dom"
+import { signOut } from "@/lib/auth"
 
 const navItems = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/" },
@@ -11,12 +12,12 @@ export default function Sidebar () {
   const location = useLocation()
 
   return (
-    <aside className="w-64 min-h-screen bg-slate-900 border-r border-slate-800 p-4">
+    <aside className="w-64 min-h-screen bg-slate-900 border-r border-slate-800 p-4 flex flex-col">
       <div className="mb-8">
-        <h1 className="text-white font-bold text-xl">Cable Manager</h1>
+        <h1 className="text-white font-bold text-xl">RKR Cable Manager</h1>
         <p className="text-slate-400 text-sm">Payment Tracker</p>
       </div>
-      <nav className="space-y-1">
+      <nav className="space-y-1 flex-1">
         {navItems.map((item) => (
           <Link
             key={item.href}
@@ -31,6 +32,15 @@ export default function Sidebar () {
           </Link>
         ))}
       </nav>
+
+      {/* Sign Out */}
+      <button
+        onClick={signOut}
+        className="flex items-center gap-3 px-3 py-2 rounded-md text-slate-400 hover:text-red-400 hover:bg-slate-800 transition-colors mt-4"
+      >
+        <LogOut className="w-5 h-5" />
+        Sign Out
+      </button>
     </aside>
   )
 }

@@ -35,6 +35,7 @@ export default function CustomerForm ({ onSubmit, defaultValues, isLoading }: Cu
       <div>
         <label className="text-sm text-slate-300 mb-1 block">Customer Name</label>
         <Input
+          type="text"
           {...register("name")}
           placeholder="Ex: Ravi Kumar"
           className="bg-slate-800 border-slate-700 text-white"
@@ -45,6 +46,7 @@ export default function CustomerForm ({ onSubmit, defaultValues, isLoading }: Cu
       <div>
         <label className="text-sm text-slate-300 mb-1 block">Box Number (GTPL ID)</label>
         <Input
+          type="text"
           {...register("box_number")}
           placeholder="Ex: GTPL-1234"
           className="bg-slate-800 border-slate-700 text-white"
@@ -55,6 +57,7 @@ export default function CustomerForm ({ onSubmit, defaultValues, isLoading }: Cu
       <div>
         <label className="text-sm text-slate-300 mb-1 block">Street</label>
         <Input
+          type="text"
           {...register("street")}
           placeholder="Ex: Gandhi Street"
           className="bg-slate-800 border-slate-700 text-white"
@@ -65,6 +68,7 @@ export default function CustomerForm ({ onSubmit, defaultValues, isLoading }: Cu
       <div>
         <label className="text-sm text-slate-300 mb-1 block">Town</label>
         <Input
+          type="text"
           {...register("town")}
           placeholder="Ex: Rajkot"
           className="bg-slate-800 border-slate-700 text-white"

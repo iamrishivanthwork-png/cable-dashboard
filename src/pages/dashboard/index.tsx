@@ -180,7 +180,7 @@ export default function Dashboard () {
             </div>
             <div className="flex gap-2 mb-3">
               <Badge className="bg-green-600 text-white">{summary.paid} Paid</Badge>
-              <Badge variant="destructive">{summary.unpaid} Unpaid</Badge>
+              <Badge className="bg-red-600 text-white">{summary.unpaid} Unpaid</Badge>
               <Badge className="bg-yellow-600 text-white">{summary.pending} Pending</Badge>
             </div>
             <p className="text-slate-400 text-sm">
