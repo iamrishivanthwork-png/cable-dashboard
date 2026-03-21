@@ -50,15 +50,30 @@ export default function Receipt ({ customer, payment, onClose }: ReceiptProps) {
         useCORS: true,
       })
 
-      const imgData = canvas.toDataURL("image/png")
-      // RawBT URL scheme — opens RawBT app and prints
-      window.location.href = `rawbt:base64,${imgData.split(",")[1]}`
-      toast.success("Sending to RawBT printer...")
+      // Convert canvas to blob
+      canvas.toBlob((blob) => {
+        if (!blob) {
+          toast.error("Failed to generate receipt image")
+          return
+        }
+
+        // Create a temporary URL for the blob
+        const url = URL.createObjectURL(blob)
+
+        // RawBT intent URL with image
+        const rawbtUrl = `rawbt:${url}`
+        window.location.href = rawbtUrl
+
+        toast.success("Sending to RawBT printer...")
+
+        // Cleanup URL after 30 seconds
+        setTimeout(() => URL.revokeObjectURL(url), 30000)
+      }, "image/png")
+
     } catch (err) {
       toast.error("Failed to send to printer")
     }
   }
-
   return (
     <div className="space-y-4">
       {/* Receipt Preview */}
