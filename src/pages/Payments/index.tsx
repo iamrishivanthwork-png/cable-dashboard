@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { CheckCircle, XCircle, Clock, FileText, Copy, Eye } from "lucide-react"
+import { CheckCircle, XCircle, Clock, FileText, Copy, Eye, Printer } from "lucide-react"
 import { useForm, Controller } from "react-hook-form"
 import { z } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -62,6 +62,8 @@ export default function Payments () {
   const [billSearch, setBillSearch] = useState("")
   const [isRemoveDialogOpen, setIsRemoveDialogOpen] = useState(false)
   const [customerToRemove, setCustomerToRemove] = useState<CustomerWithStatus | null>(null)
+  const [printCustomer, setPrintCustomer] = useState<CustomerWithStatus | null>(null)
+  const [isPrintOpen, setIsPrintOpen] = useState(false)
 
   const { register, handleSubmit, reset, control, formState: { errors } } = useForm<PaymentFormData>({
     resolver: zodResolver(paymentSchema),
@@ -406,6 +408,18 @@ export default function Payments () {
                           <Button
                             size="sm"
                             variant="ghost"
+                            onClick={() => {
+                              setPrintCustomer(customer)
+                              setIsPrintOpen(true)
+                            }}
+                            className="text-green-400 hover:text-green-300 text-xs"
+                          >
+                            <Printer className="w-4 h-4 mr-1" />
+                            Print
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
                             onClick={() => handleUnmarkPaid(customer)}
                             className="text-red-400 hover:text-red-300 text-xs"
                           >
@@ -528,6 +542,22 @@ export default function Payments () {
               customer={receiptCustomer}
               payment={receiptCustomer.payment}
               onClose={() => setIsReceiptOpen(false)}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Print Dialog */}
+      <Dialog open={isPrintOpen} onOpenChange={setIsPrintOpen}>
+        <DialogContent className="bg-slate-900 border-slate-700 max-w-md">
+          <DialogHeader className="print-header">
+            <DialogTitle className="text-white">Print Receipt</DialogTitle>
+          </DialogHeader>
+          {printCustomer && printCustomer.payment && (
+            <Receipt
+              customer={printCustomer}
+              payment={printCustomer.payment}
+              onClose={() => setIsPrintOpen(false)}
             />
           )}
         </DialogContent>
