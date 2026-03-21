@@ -42,9 +42,7 @@ export default function Dashboard () {
   async function fetchDashboardData () {
     setLoading(true)
 
-    const { data: customers } = await supabase
-      .from("customers")
-      .select("*")
+    const { data: customers } = await supabase.from("customers").select("*")
 
     const { data: payments } = await supabase
       .from("payments")
@@ -70,7 +68,6 @@ export default function Dashboard () {
       setUnpaidCount(unpaid < 0 ? 0 : unpaid)
       setTotalCollected(payments?.reduce((sum, p) => sum + p.amount, 0) ?? 0)
 
-      // Town summaries
       const towns = [...new Set(customers.map((c: Customer) => c.town))]
       const summaries: TownSummary[] = towns.map((town) => {
         const townCustomers = customers.filter((c: Customer) => c.town === town)
@@ -91,7 +88,6 @@ export default function Dashboard () {
       })
       setTownSummaries(summaries)
 
-      // Recent payments with customer name
       if (payments) {
         const withNames = payments.map((p) => ({
           ...p,
@@ -111,77 +107,79 @@ export default function Dashboard () {
 
   return (
     <div>
+      {/* Header */}
       <div className="mb-6">
-        <h1 className="text-white text-2xl font-bold">Dashboard</h1>
+        <h1 className="text-white text-xl md:text-2xl font-bold">Dashboard</h1>
         <p className="text-slate-400 text-sm mt-1">{formatMonth(month)} overview</p>
       </div>
 
-      {/* Summary Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
-        <div className="bg-slate-900 border border-slate-800 rounded-lg p-4 flex items-center gap-3">
-          <div className="bg-slate-800 p-2 rounded-md">
-            <Users className="w-5 h-5 text-slate-300" />
+      {/* Summary Cards — 2 cols on mobile, 5 on desktop */}
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6">
+        <div className="bg-slate-900 border border-slate-800 rounded-lg p-3 md:p-4 flex items-center gap-3">
+          <div className="bg-slate-800 p-2 rounded-md shrink-0">
+            <Users className="w-4 h-4 md:w-5 md:h-5 text-slate-300" />
           </div>
           <div>
             <p className="text-slate-400 text-xs">Total</p>
-            <p className="text-white text-xl font-bold">{totalCustomers}</p>
+            <p className="text-white text-lg md:text-xl font-bold">{totalCustomers}</p>
           </div>
         </div>
 
-        <div className="bg-slate-900 border border-slate-800 rounded-lg p-4 flex items-center gap-3">
-          <div className="bg-green-900 p-2 rounded-md">
-            <CheckCircle className="w-5 h-5 text-green-400" />
+        <div className="bg-slate-900 border border-slate-800 rounded-lg p-3 md:p-4 flex items-center gap-3">
+          <div className="bg-green-900 p-2 rounded-md shrink-0">
+            <CheckCircle className="w-4 h-4 md:w-5 md:h-5 text-green-400" />
           </div>
           <div>
             <p className="text-slate-400 text-xs">Paid</p>
-            <p className="text-green-400 text-xl font-bold">{paidCount}</p>
+            <p className="text-green-400 text-lg md:text-xl font-bold">{paidCount}</p>
           </div>
         </div>
 
-        <div className="bg-slate-900 border border-slate-800 rounded-lg p-4 flex items-center gap-3">
-          <div className="bg-red-900 p-2 rounded-md">
-            <XCircle className="w-5 h-5 text-red-400" />
+        <div className="bg-slate-900 border border-slate-800 rounded-lg p-3 md:p-4 flex items-center gap-3">
+          <div className="bg-red-900 p-2 rounded-md shrink-0">
+            <XCircle className="w-4 h-4 md:w-5 md:h-5 text-red-400" />
           </div>
           <div>
             <p className="text-slate-400 text-xs">Unpaid</p>
-            <p className="text-red-400 text-xl font-bold">{unpaidCount}</p>
+            <p className="text-red-400 text-lg md:text-xl font-bold">{unpaidCount}</p>
           </div>
         </div>
 
-        <div className="bg-slate-900 border border-slate-800 rounded-lg p-4 flex items-center gap-3">
-          <div className="bg-yellow-900 p-2 rounded-md">
-            <Clock className="w-5 h-5 text-yellow-400" />
+        <div className="bg-slate-900 border border-slate-800 rounded-lg p-3 md:p-4 flex items-center gap-3">
+          <div className="bg-yellow-900 p-2 rounded-md shrink-0">
+            <Clock className="w-4 h-4 md:w-5 md:h-5 text-yellow-400" />
           </div>
           <div>
             <p className="text-slate-400 text-xs">Pending</p>
-            <p className="text-yellow-400 text-xl font-bold">{pendingCount}</p>
+            <p className="text-yellow-400 text-lg md:text-xl font-bold">{pendingCount}</p>
           </div>
         </div>
 
-        <div className="bg-slate-900 border border-slate-800 rounded-lg p-4 flex items-center gap-3">
-          <div className="bg-blue-900 p-2 rounded-md">
-            <IndianRupee className="w-5 h-5 text-blue-400" />
+        {/* Collected spans full width on mobile */}
+        <div className="bg-slate-900 border border-slate-800 rounded-lg p-3 md:p-4 flex items-center gap-3 col-span-2 md:col-span-1">
+          <div className="bg-blue-900 p-2 rounded-md shrink-0">
+            <IndianRupee className="w-4 h-4 md:w-5 md:h-5 text-blue-400" />
           </div>
           <div>
             <p className="text-slate-400 text-xs">Collected</p>
-            <p className="text-blue-400 text-xl font-bold">₹{totalCollected}</p>
+            <p className="text-blue-400 text-lg md:text-xl font-bold">₹{totalCollected}</p>
           </div>
         </div>
       </div>
 
       {/* Town Summaries */}
       <h2 className="text-white font-semibold mb-3">Town Breakdown</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6">
         {townSummaries.map((summary) => (
           <div key={summary.town} className="bg-slate-900 border border-slate-800 rounded-lg p-4">
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-white font-semibold">{summary.town}</h3>
               <span className="text-slate-400 text-sm">{summary.total} customers</span>
             </div>
-            <div className="flex gap-2 mb-3">
-              <Badge className="bg-green-600 text-white">{summary.paid} Paid</Badge>
-              <Badge className="bg-red-600 text-white">{summary.unpaid} Unpaid</Badge>
-              <Badge className="bg-yellow-600 text-white">{summary.pending} Pending</Badge>
+            <div className="flex gap-2 mb-3 flex-wrap">
+              <Badge className="bg-green-600 text-white text-xs">{summary.paid} Paid</Badge>
+              <Badge className="bg-red-600 text-white text-xs">{summary.unpaid} Unpaid</Badge>
+              <Badge className="bg-yellow-600 text-white text-xs">{summary.pending} Pending</Badge>
             </div>
             <p className="text-slate-400 text-sm">
               Collected: <span className="text-white font-semibold">₹{summary.collected}</span>
@@ -192,7 +190,34 @@ export default function Dashboard () {
 
       {/* Recent Payments */}
       <h2 className="text-white font-semibold mb-3">Recent Payments</h2>
-      <div className="rounded-lg border border-slate-800 overflow-hidden">
+
+      {/* Mobile: Card view */}
+      <div className="md:hidden space-y-2">
+        {recentPayments.length === 0 ? (
+          <p className="text-slate-400 text-center py-6">No payments recorded this month yet.</p>
+        ) : (
+          recentPayments.map((payment) => (
+            <div key={payment.id} className="bg-slate-900 border border-slate-800 rounded-lg p-3">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-white font-medium text-sm">{payment.customer_name}</span>
+                <span className="text-green-400 font-bold">₹{payment.amount}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-slate-400 text-xs">{payment.paid_date}</span>
+                <Badge
+                  variant="outline"
+                  className={`text-xs ${payment.payment_mode === "gpay" ? "border-blue-500 text-blue-400" : "border-slate-600 text-slate-300"}`}
+                >
+                  {payment.payment_mode === "gpay" ? "GPay" : "Cash"}
+                </Badge>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* Desktop: Table view */}
+      <div className="hidden md:block rounded-lg border border-slate-800 overflow-hidden">
         <table className="w-full text-sm">
           <thead className="bg-slate-800">
             <tr>
@@ -215,7 +240,10 @@ export default function Dashboard () {
                   <td className="text-white px-4 py-3">{payment.customer_name}</td>
                   <td className="text-green-400 px-4 py-3 font-medium">₹{payment.amount}</td>
                   <td className="px-4 py-3">
-                    <Badge variant="outline" className={`text-xs ${payment.payment_mode === "gpay" ? "border-blue-500 text-blue-400" : "border-slate-600 text-slate-300"}`}>
+                    <Badge
+                      variant="outline"
+                      className={`text-xs ${payment.payment_mode === "gpay" ? "border-blue-500 text-blue-400" : "border-slate-600 text-slate-300"}`}
+                    >
                       {payment.payment_mode === "gpay" ? "GPay" : "Cash"}
                     </Badge>
                   </td>

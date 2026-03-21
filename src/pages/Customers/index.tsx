@@ -115,28 +115,30 @@ export default function Customers () {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-4">
         <div>
-          <h1 className="text-white text-2xl font-bold">Customers</h1>
+          <h1 className="text-white text-xl md:text-2xl font-bold">Customers</h1>
           <p className="text-slate-400 text-sm mt-1">{customers.length} total customers</p>
         </div>
         <Button onClick={() => setIsAddOpen(true)} className="bg-blue-600 hover:bg-blue-700">
-          <Plus className="w-4 h-4 mr-2" />
-          Add Customer
+          <Plus className="w-4 h-4 mr-1 md:mr-2" />
+          <span className="hidden md:inline">Add Customer</span>
+          <span className="md:hidden">Add</span>
         </Button>
       </div>
 
       {/* Search + Town Filter */}
-      <div className="flex gap-3 mb-4 flex-wrap">
+      <div className="flex gap-2 mb-4 flex-wrap">
         <Input
           type="text"
-          placeholder="Search by name or box number..."
+          placeholder="Search name or box..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="bg-slate-800 border-slate-700 text-white max-w-sm"
+          className="bg-slate-800 border-slate-700 text-white flex-1 min-w-0"
         />
         <Select value={townFilter} onValueChange={setTownFilter}>
-          <SelectTrigger className="w-40 bg-slate-800 border-slate-700 text-white">
+          <SelectTrigger className="w-32 md:w-40 bg-slate-800 border-slate-700 text-white shrink-0">
             <SelectValue placeholder="All Towns" />
           </SelectTrigger>
           <SelectContent className="bg-slate-800 border-slate-700">
@@ -153,7 +155,7 @@ export default function Customers () {
         <div className="flex gap-2 mb-4 flex-wrap">
           <button
             onClick={() => setStreetFilter("all")}
-            className={`px-3 py-1 rounded-full text-sm transition-colors ${streetFilter === "all" ? "bg-blue-600 text-white" : "bg-slate-800 text-slate-300 hover:bg-slate-700"
+            className={`px-3 py-1 rounded-full text-xs md:text-sm transition-colors ${streetFilter === "all" ? "bg-blue-600 text-white" : "bg-slate-800 text-slate-300 hover:bg-slate-700"
               }`}
           >
             All Streets
@@ -162,7 +164,7 @@ export default function Customers () {
             <button
               key={street}
               onClick={() => setStreetFilter(street)}
-              className={`px-3 py-1 rounded-full text-sm transition-colors ${streetFilter === street ? "bg-blue-600 text-white" : "bg-slate-800 text-slate-300 hover:bg-slate-700"
+              className={`px-3 py-1 rounded-full text-xs md:text-sm transition-colors ${streetFilter === street ? "bg-blue-600 text-white" : "bg-slate-800 text-slate-300 hover:bg-slate-700"
                 }`}
             >
               {street}
@@ -176,85 +178,126 @@ export default function Customers () {
       ) : filtered.length === 0 ? (
         <p className="text-slate-400">No customers found.</p>
       ) : (
-        <div className="rounded-lg border border-slate-800 overflow-hidden">
-          <table className="w-full text-sm">
-            <thead className="bg-slate-800">
-              <tr>
-                <th className="text-left text-slate-400 px-4 py-3">Name</th>
-                <th className="text-left text-slate-400 px-4 py-3">Box Number</th>
-                <th className="text-left text-slate-400 px-4 py-3">Street</th>
-                <th className="text-left text-slate-400 px-4 py-3">Town</th>
-                <th className="text-left text-slate-400 px-4 py-3">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map((customer, index) => (
-                <tr key={customer.id} className={index % 2 === 0 ? "bg-slate-900" : "bg-slate-950"}>
-                  <td className="text-white px-4 py-3">{customer.name}</td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-2">
-                      <Badge variant="outline" className="text-slate-300 border-slate-600">
-                        {customer.box_number}
-                      </Badge>
-                      <button
-                        onClick={() => {
-                          navigator.clipboard.writeText(customer.box_number)
-                          toast.success(`Copied: ${customer.box_number}`)
-                        }}
-                        className="text-slate-500 hover:text-white transition-colors"
-                        title="Copy box number"
-                      >
-                        <Copy className="w-3 h-3" />
-                      </button>
-                    </div>
-                  </td>
-                  <td className="text-slate-300 px-4 py-3">{customer.street}</td>
-                  <td className="text-slate-300 px-4 py-3">{customer.town}</td>
-                  <td className="px-4 py-3">
-                    <div className="flex gap-2">
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => navigate(`/customers/${customer.id}`)}
-                        className="text-slate-400 hover:text-blue-400"
-                      >
-                        <Eye className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => {
-                          setSelectedCustomer(customer)
-                          setIsEditOpen(true)
-                        }}
-                        className="text-slate-400 hover:text-white"
-                      >
-                        <Pencil className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => {
-                          setCustomerToDelete(customer)
-                          setIsDeleteOpen(true)
-                        }}
-                        className="text-slate-400 hover:text-red-400"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </td>
+        <>
+          {/* Mobile: Card View */}
+          <div className="md:hidden space-y-2">
+            {filtered.map((customer) => (
+              <div key={customer.id} className="bg-slate-900 border border-slate-800 rounded-lg p-3">
+                <div className="flex items-start justify-between mb-2">
+                  <div>
+                    <p className="text-white font-medium">{customer.name}</p>
+                    <p className="text-slate-400 text-xs mt-0.5">{customer.street}, {customer.town}</p>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Badge variant="outline" className="text-slate-300 border-slate-600 text-xs">
+                      {customer.box_number}
+                    </Badge>
+                    <button
+                      onClick={() => {
+                        navigator.clipboard.writeText(customer.box_number)
+                        toast.success(`Copied: ${customer.box_number}`)
+                      }}
+                      className="text-slate-500 hover:text-white transition-colors ml-1"
+                    >
+                      <Copy className="w-3 h-3" />
+                    </button>
+                  </div>
+                </div>
+                <div className="flex gap-2 justify-end">
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => navigate(`/customers/${customer.id}`)}
+                    className="text-slate-400 hover:text-blue-400 h-8 px-2"
+                  >
+                    <Eye className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => {
+                      setSelectedCustomer(customer)
+                      setIsEditOpen(true)
+                    }}
+                    className="text-slate-400 hover:text-white h-8 px-2"
+                  >
+                    <Pencil className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => {
+                      setCustomerToDelete(customer)
+                      setIsDeleteOpen(true)
+                    }}
+                    className="text-slate-400 hover:text-red-400 h-8 px-2"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Desktop: Table View */}
+          <div className="hidden md:block rounded-lg border border-slate-800 overflow-hidden">
+            <table className="w-full text-sm">
+              <thead className="bg-slate-800">
+                <tr>
+                  <th className="text-left text-slate-400 px-4 py-3">Name</th>
+                  <th className="text-left text-slate-400 px-4 py-3">Box Number</th>
+                  <th className="text-left text-slate-400 px-4 py-3">Street</th>
+                  <th className="text-left text-slate-400 px-4 py-3">Town</th>
+                  <th className="text-left text-slate-400 px-4 py-3">Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {filtered.map((customer, index) => (
+                  <tr key={customer.id} className={index % 2 === 0 ? "bg-slate-900" : "bg-slate-950"}>
+                    <td className="text-white px-4 py-3">{customer.name}</td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-2">
+                        <Badge variant="outline" className="text-slate-300 border-slate-600">
+                          {customer.box_number}
+                        </Badge>
+                        <button
+                          onClick={() => {
+                            navigator.clipboard.writeText(customer.box_number)
+                            toast.success(`Copied: ${customer.box_number}`)
+                          }}
+                          className="text-slate-500 hover:text-white transition-colors"
+                        >
+                          <Copy className="w-3 h-3" />
+                        </button>
+                      </div>
+                    </td>
+                    <td className="text-slate-300 px-4 py-3">{customer.street}</td>
+                    <td className="text-slate-300 px-4 py-3">{customer.town}</td>
+                    <td className="px-4 py-3">
+                      <div className="flex gap-2">
+                        <Button size="sm" variant="ghost" onClick={() => navigate(`/customers/${customer.id}`)} className="text-slate-400 hover:text-blue-400">
+                          <Eye className="w-4 h-4" />
+                        </Button>
+                        <Button size="sm" variant="ghost" onClick={() => { setSelectedCustomer(customer); setIsEditOpen(true) }} className="text-slate-400 hover:text-white">
+                          <Pencil className="w-4 h-4" />
+                        </Button>
+                        <Button size="sm" variant="ghost" onClick={() => { setCustomerToDelete(customer); setIsDeleteOpen(true) }} className="text-slate-400 hover:text-red-400">
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </>
       )}
 
       {/* Add Customer Dialog */}
       <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
-        <DialogContent className="bg-slate-900 border-slate-700">
-          <DialogHeader className={"add-new-header"}>
+        <DialogContent className="bg-slate-900 border-slate-700 w-full max-w-md mx-auto">
+          <DialogHeader className="">
             <DialogTitle className="text-white">Add New Customer</DialogTitle>
           </DialogHeader>
           <CustomerForm onSubmit={handleAdd} isLoading={formLoading} />
@@ -263,8 +306,8 @@ export default function Customers () {
 
       {/* Edit Customer Dialog */}
       <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
-        <DialogContent className="bg-slate-900 border-slate-700">
-          <DialogHeader className={"edit-header"}>
+        <DialogContent className="bg-slate-900 border-slate-700 w-full max-w-md mx-auto">
+          <DialogHeader className="">
             <DialogTitle className="text-white">Edit Customer</DialogTitle>
           </DialogHeader>
           <CustomerForm
@@ -277,10 +320,10 @@ export default function Customers () {
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
-        <AlertDialogContent className="bg-slate-900 border-slate-700">
-          <AlertDialogHeader className={"delete-header"}>
+        <AlertDialogContent className="bg-slate-900 border-slate-700 w-full max-w-sm mx-auto">
+          <AlertDialogHeader className="">
             <AlertDialogTitle className="text-white">Delete Customer?</AlertDialogTitle>
-            <AlertDialogDescription className={"child-data"} asChild>
+            <AlertDialogDescription className="" asChild>
               <div className="space-y-3">
                 <p className="text-slate-400">This will permanently delete:</p>
                 {customerToDelete && (
@@ -307,16 +350,9 @@ export default function Customers () {
               </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter className={"footer"}>
-            <AlertDialogCancel className="border-slate-700 text-slate-300 hover:bg-slate-800">
-              Cancel
-            </AlertDialogCancel>
-            <AlertDialogAction
-              onClick={confirmDelete}
-              className="bg-red-600 hover:bg-red-700 text-white"
-            >
-              Yes, Delete
-            </AlertDialogAction>
+          <AlertDialogFooter className="">
+            <AlertDialogCancel className="border-slate-700 text-slate-300 hover:bg-slate-800">Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-red-600 hover:bg-red-700 text-white">Yes, Delete</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
