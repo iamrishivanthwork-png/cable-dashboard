@@ -1,4 +1,4 @@
-import { LayoutDashboard, Users, CreditCard, LogOut, FileBarChart } from "lucide-react"
+import { LayoutDashboard, Users, CreditCard, LogOut, FileBarChart, BarChart2 } from "lucide-react"
 import { Link, useLocation } from "react-router-dom"
 import { signOut } from "@/lib/auth"
 
@@ -7,6 +7,7 @@ const navItems = [
   { icon: Users, label: "Customers", href: "/customers" },
   { icon: CreditCard, label: "Payments", href: "/payments" },
   { icon: FileBarChart, label: "Reports", href: "/reports" },
+  { icon: BarChart2, label: "Analytics", href: "/analytics" },
 ]
 
 export default function Sidebar () {
