@@ -10,6 +10,14 @@ const navItems = [
   { icon: BarChart2, label: "Analytics", href: "/analytics" },
 ]
 
+// Mobile shows only these 4
+const mobileNavItems = [
+  { icon: LayoutDashboard, label: "Dashboard", href: "/" },
+  { icon: Users, label: "Customers", href: "/customers" },
+  { icon: CreditCard, label: "Payments", href: "/payments" },
+  { icon: FileBarChart, label: "Reports", href: "/reports" },
+]
+
 export default function Sidebar () {
   const location = useLocation()
 
@@ -27,8 +35,8 @@ export default function Sidebar () {
               key={item.href}
               to={item.href}
               className={`flex items-center gap-3 px-3 py-2 rounded-md transition-colors ${location.pathname === item.href
-                ? "bg-slate-700 text-white"
-                : "text-slate-300 hover:bg-slate-800 hover:text-white"
+                  ? "bg-slate-700 text-white"
+                  : "text-slate-300 hover:bg-slate-800 hover:text-white"
                 }`}
             >
               <item.icon className="w-5 h-5" />
@@ -45,15 +53,15 @@ export default function Sidebar () {
         </button>
       </aside>
 
-      {/* Mobile Bottom Nav */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-slate-900 border-t border-slate-800 flex items-center justify-around px-2 py-2">
-        {navItems.map((item) => (
+      {/* Mobile Bottom Nav — 4 items + logout only */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-slate-900 border-t border-slate-800 flex items-center justify-around px-1 py-2">
+        {mobileNavItems.map((item) => (
           <Link
             key={item.href}
             to={item.href}
-            className={`flex flex-col items-center gap-1 px-4 py-1 rounded-md transition-colors ${location.pathname === item.href
-              ? "text-blue-400"
-              : "text-slate-400 hover:text-white"
+            className={`flex flex-col items-center gap-1 px-2 py-1 rounded-md transition-colors ${location.pathname === item.href
+                ? "text-blue-400"
+                : "text-slate-400 hover:text-white"
               }`}
           >
             <item.icon className="w-5 h-5" />
@@ -62,7 +70,7 @@ export default function Sidebar () {
         ))}
         <button
           onClick={signOut}
-          className="flex flex-col items-center gap-1 px-4 py-1 rounded-md text-slate-400 hover:text-red-400 transition-colors"
+          className="flex flex-col items-center gap-1 px-2 py-1 rounded-md text-slate-400 hover:text-red-400 transition-colors"
         >
           <LogOut className="w-5 h-5" />
           <span className="text-xs">Logout</span>
