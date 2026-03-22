@@ -43,99 +43,52 @@ export default function Receipt ({ customer, payment, onClose }: ReceiptProps) {
     if (!receiptRef.current) return
 
     try {
-      // Request Bluetooth device
-      const device = await (navigator as any).bluetooth.requestDevice({
-        filters: [
-          { services: ["000018f0-0000-1000-8000-00805f9b34fb"] },
-        ],
-        optionalServices: ["000018f0-0000-1000-8000-00805f9b34fb"],
-      })
+      toast.success("Generating receipt...")
 
-      toast.success("Connecting to printer...")
-
-      const server = await device.gatt.connect()
-      const service = await server.getPrimaryService("000018f0-0000-1000-8000-00805f9b34fb")
-      const characteristic = await service.getCharacteristic("00002af1-0000-1000-8000-00805f9b34fb")
-
-      // Generate receipt image
       const canvas = await html2canvas(receiptRef.current, {
         scale: 3,
         backgroundColor: "#ffffff",
         useCORS: true,
       })
 
-      // ESC/POS commands
-      const ESC = 0x1b
-      const GS = 0x1d
-
-      // Initialize printer
-      const init = new Uint8Array([ESC, 0x40])
-
-      // Center align
-      const center = new Uint8Array([ESC, 0x61, 0x01])
-
-      // Print image using canvas
-      const width = canvas.width
-      const height = canvas.height
-      const ctx = canvas.getContext("2d")!
-      const imageData = ctx.getImageData(0, 0, width, height)
-
-      // Convert to printer bitmap
-      const widthBytes = Math.ceil(width / 8)
-      const imgCmd = new Uint8Array(8 + widthBytes * height)
-      imgCmd[0] = GS
-      imgCmd[1] = 0x76
-      imgCmd[2] = 0x30
-      imgCmd[3] = 0x00
-      imgCmd[4] = widthBytes & 0xff
-      imgCmd[5] = (widthBytes >> 8) & 0xff
-      imgCmd[6] = height & 0xff
-      imgCmd[7] = (height >> 8) & 0xff
-
-      for (let y = 0; y < height; y++) {
-        for (let x = 0; x < widthBytes; x++) {
-          let byte = 0
-          for (let bit = 0; bit < 8; bit++) {
-            const px = (y * width + x * 8 + bit) * 4
-            const r = imageData.data[px]
-            const g = imageData.data[px + 1]
-            const b = imageData.data[px + 2]
-            const brightness = (r + g + b) / 3
-            if (brightness < 128) byte |= (0x80 >> bit)
-          }
-          imgCmd[8 + y * widthBytes + x] = byte
+      canvas.toBlob((blob) => {
+        if (!blob) {
+          toast.error("Failed to generate receipt")
+          return
         }
-      }
 
-      // Feed and cut
-      const feed = new Uint8Array([ESC, 0x64, 0x05])
-      const cut = new Uint8Array([GS, 0x56, 0x42, 0x00])
+        // Try POS Printer app URL scheme
+        const url = URL.createObjectURL(blob)
 
-      // Send in chunks (BLE has 512 byte limit per write)
-      async function sendChunked (data: Uint8Array) {
-        const chunkSize = 512
-        for (let i = 0; i < data.length; i += chunkSize) {
-          const chunk = data.slice(i, i + chunkSize)
-          await characteristic.writeValueWithoutResponse(chunk)
-          await new Promise((r) => setTimeout(r, 50))
+        // Create a temporary download link and share
+        const a = document.createElement("a")
+        a.href = url
+        a.download = `receipt-${payment.bill_number}.png`
+
+        // Use Web Share API if available (shows share sheet on Android)
+        if (navigator.share) {
+          const file = new File([blob], `receipt-${payment.bill_number}.png`, { type: "image/png" })
+          navigator.share({
+            title: `Receipt ${payment.bill_number}`,
+            files: [file],
+          }).then(() => {
+            toast.success("Share sheet opened — select your printer app!")
+          }).catch(() => {
+            // Fallback to download
+            a.click()
+            toast.success("Receipt saved — open it to print!")
+          })
+        } else {
+          // Fallback — just download the image
+          a.click()
+          toast.success("Receipt downloaded — open with your printer app!")
         }
-      }
 
-      await sendChunked(init)
-      await sendChunked(center)
-      await sendChunked(imgCmd)
-      await sendChunked(feed)
-      await sendChunked(cut)
-
-      toast.success("Printed successfully!")
-      device.gatt.disconnect()
+        setTimeout(() => URL.revokeObjectURL(url), 30000)
+      }, "image/png")
 
     } catch (err: any) {
-      if (err.name === "NotFoundError") {
-        toast.error("No printer selected")
-      } else {
-        toast.error("Print failed: " + err.message)
-      }
+      toast.error("Failed: " + err.message)
     }
   }
 
