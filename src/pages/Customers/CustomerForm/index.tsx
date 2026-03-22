@@ -10,6 +10,7 @@ const customerSchema = z.object({
   box_number: z.string().min(1, "Box number is required"),
   street: z.string().min(1, "Street is required"),
   town: z.string().min(1, "Town is required"),
+  mobile: z.string().length(10, "Mobile must be 10 digits").or(z.literal("")).optional(),
 })
 
 export type CustomerFormData = z.infer<typeof customerSchema>
@@ -27,11 +28,17 @@ export default function CustomerForm ({ onSubmit, defaultValues, isLoading }: Cu
     formState: { errors },
   } = useForm<CustomerFormData>({
     resolver: zodResolver(customerSchema),
-    defaultValues,
+    defaultValues: {
+      name: defaultValues?.name ?? "",
+      box_number: defaultValues?.box_number ?? "",
+      street: defaultValues?.street ?? "",
+      town: defaultValues?.town ?? "",
+      mobile: defaultValues?.mobile ?? "",
+    },
   })
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+    <form onSubmit={handleSubmit(onSubmit as any)} className="space-y-4">
       <div>
         <label className="text-sm text-slate-300 mb-1 block">Customer Name</label>
         <Input
@@ -41,6 +48,20 @@ export default function CustomerForm ({ onSubmit, defaultValues, isLoading }: Cu
           className="bg-slate-800 border-slate-700 text-white"
         />
         {errors.name && <p className="text-red-400 text-xs mt-1">{errors.name.message}</p>}
+      </div>
+
+      <div>
+        <label className="text-sm text-slate-300 mb-1 block">
+          Mobile Number <span className="text-slate-500">(optional)</span>
+        </label>
+        <Input
+          type="tel"
+          {...register("mobile")}
+          placeholder="Ex: 9876543210"
+          className="bg-slate-800 border-slate-700 text-white"
+          maxLength={10}
+        />
+        {errors.mobile && <p className="text-red-400 text-xs mt-1">{errors.mobile.message}</p>}
       </div>
 
       <div>

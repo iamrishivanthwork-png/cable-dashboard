@@ -4,6 +4,7 @@ export interface Customer {
   box_number: string
   street: string
   town: string
+  mobile: string | null
   created_at: string
 }
 

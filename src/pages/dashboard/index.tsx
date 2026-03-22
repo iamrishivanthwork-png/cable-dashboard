@@ -2,7 +2,10 @@ import { useEffect, useState } from "react"
 import { supabase } from "@/lib/supabase"
 import { Customer, Payment, PendingPayment } from "@/types"
 import { Badge } from "@/components/ui/badge"
-import { Users, CheckCircle, XCircle, Clock, IndianRupee } from "lucide-react"
+import { Users, CheckCircle, XCircle, Clock, IndianRupee, Download } from "lucide-react"
+import { exportToCSV } from "@/lib/export"
+import { toast } from "sonner"
+import { Button } from "@/components/ui/button"
 
 function getCurrentMonth () {
   const now = new Date()
@@ -38,6 +41,56 @@ export default function Dashboard () {
   useEffect(() => {
     fetchDashboardData()
   }, [])
+
+
+  async function handleExportCustomers () {
+    const { data, error } = await supabase
+      .from("customers")
+      .select("*")
+      .order("created_at", { ascending: false })
+
+    if (error || !data) {
+      toast.error("Failed to export customers")
+      return
+    }
+
+    exportToCSV(`customers-${new Date().toISOString().split("T")[0]}.csv`, data)
+    toast.success(`Exported ${data.length} customers!`)
+  }
+
+  async function handleExportPayments () {
+    const { data: payments, error } = await supabase
+      .from("payments")
+      .select("*")
+      .order("paid_date", { ascending: false })
+
+    if (error || !payments) {
+      toast.error("Failed to export payments")
+      return
+    }
+
+    // Get customers for names
+    const { data: customers } = await supabase.from("customers").select("*")
+
+    const enriched = payments.map((p) => {
+      const customer = customers?.find((c) => c.id === p.customer_id)
+      return {
+        bill_number: p.bill_number,
+        customer_name: customer?.name ?? "Unknown",
+        box_number: customer?.box_number ?? "-",
+        street: customer?.street ?? "-",
+        town: customer?.town ?? "-",
+        month: p.month,
+        amount: p.amount,
+        payment_mode: p.payment_mode,
+        paid_date: p.paid_date,
+        paid_at: p.paid_at,
+      }
+    })
+
+    exportToCSV(`payments-${new Date().toISOString().split("T")[0]}.csv`, enriched)
+    toast.success(`Exported ${enriched.length} payments!`)
+  }
 
   async function fetchDashboardData () {
     setLoading(true)
@@ -101,6 +154,8 @@ export default function Dashboard () {
     setLoading(false)
   }
 
+
+
   if (loading) {
     return <p className="text-slate-400">Loading...</p>
   }
@@ -108,9 +163,32 @@ export default function Dashboard () {
   return (
     <div>
       {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-white text-xl md:text-2xl font-bold">Dashboard</h1>
-        <p className="text-slate-400 text-sm mt-1">{formatMonth(month)} overview</p>
+      <div className="mb-6 flex items-center justify-between">
+        <div>
+          <h1 className="text-white text-xl md:text-2xl font-bold">Dashboard</h1>
+          <p className="text-slate-400 text-sm mt-1">{formatMonth(month)} overview</p>
+        </div>
+        {/* Export Buttons */}
+        <div className="flex gap-2">
+          <Button
+            onClick={handleExportCustomers}
+            size="sm"
+            className="bg-blue-600 hover:bg-blue-700"
+          >
+            <Download className="w-4 h-4 mr-1 md:mr-2" />
+            <span className="hidden md:inline">Export Customers</span>
+            <span className="md:hidden">Customers</span>
+          </Button>
+          <Button
+            onClick={handleExportPayments}
+            size="sm"
+            className="bg-blue-600 hover:bg-blue-700"
+          >
+            <Download className="w-4 h-4 mr-1 md:mr-2" />
+            <span className="hidden md:inline">Export Payments</span>
+            <span className="md:hidden">Payments</span>
+          </Button>
+        </div>
       </div>
 
       {/* Summary Cards — 2 cols on mobile, 5 on desktop */}

@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Plus, Pencil, Trash2, Copy, Eye } from "lucide-react"
+import { Plus, Pencil, Trash2, Copy, Eye, Phone } from "lucide-react"
 import { toast } from "sonner"
 import CustomerForm, { CustomerFormData } from "./CustomerForm"
 import { useNavigate } from "react-router-dom"
@@ -109,7 +109,8 @@ export default function Customers () {
     const streetMatch = streetFilter === "all" || c.street === streetFilter
     const searchMatch =
       c.name.toLowerCase().includes(search.toLowerCase()) ||
-      c.box_number.toLowerCase().includes(search.toLowerCase())
+      c.box_number.toLowerCase().includes(search.toLowerCase()) ||
+      (c.mobile ?? "").includes(search)
     return townMatch && streetMatch && searchMatch
   })
 
@@ -187,6 +188,12 @@ export default function Customers () {
                   <div>
                     <p className="text-white font-medium">{customer.name}</p>
                     <p className="text-slate-400 text-xs mt-0.5">{customer.street}, {customer.town}</p>
+                    {customer.mobile && (
+                      <a href={`tel:${customer.mobile}`} className="flex items-center gap-1 text-blue-400 text-xs mt-1">
+                        <Phone className="w-3 h-3" />
+                        {customer.mobile}
+                      </a>
+                    )}
                   </div>
                   <div className="flex items-center gap-1">
                     <Badge variant="outline" className="text-slate-300 border-slate-600 text-xs">
@@ -245,6 +252,7 @@ export default function Customers () {
               <thead className="bg-slate-800">
                 <tr>
                   <th className="text-left text-slate-400 px-4 py-3">Name</th>
+                  <th className="text-left text-slate-400 px-4 py-3">Mobile</th>
                   <th className="text-left text-slate-400 px-4 py-3">Box Number</th>
                   <th className="text-left text-slate-400 px-4 py-3">Street</th>
                   <th className="text-left text-slate-400 px-4 py-3">Town</th>
@@ -255,6 +263,16 @@ export default function Customers () {
                 {filtered.map((customer, index) => (
                   <tr key={customer.id} className={index % 2 === 0 ? "bg-slate-900" : "bg-slate-950"}>
                     <td className="text-white px-4 py-3">{customer.name}</td>
+                    <td className="px-4 py-3">
+                      {customer.mobile ? (
+                        <a href={`tel:${customer.mobile}`} className="flex items-center gap-1 text-blue-400 hover:text-blue-300 text-sm">
+                          <Phone className="w-3 h-3" />
+                          {customer.mobile}
+                        </a>
+                      ) : (
+                        <span className="text-slate-500">-</span>
+                      )}
+                    </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
                         <Badge variant="outline" className="text-slate-300 border-slate-600">
