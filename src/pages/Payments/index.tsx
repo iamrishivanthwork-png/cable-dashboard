@@ -64,6 +64,8 @@ export default function Payments () {
   const [customerToRemove, setCustomerToRemove] = useState<CustomerWithStatus | null>(null)
   const [printCustomer, setPrintCustomer] = useState<CustomerWithStatus | null>(null)
   const [isPrintOpen, setIsPrintOpen] = useState(false)
+  const [currentPage, setCurrentPage] = useState(1)
+  const itemsPerPage = 10
 
   const { register, handleSubmit, reset, control, formState: { errors } } = useForm<PaymentFormData>({
     resolver: zodResolver(paymentSchema),
@@ -82,6 +84,10 @@ export default function Payments () {
       setStreets(uniqueStreets)
     }
   }, [townFilter, customers])
+
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [month, townFilter, streetFilter, statusFilter, billSearch])
 
   async function fetchData () {
     setLoading(true)
@@ -230,6 +236,13 @@ export default function Payments () {
     return townMatch && streetMatch && statusMatch && billMatch
   })
 
+  const totalPages = Math.ceil(filtered.length / itemsPerPage)
+
+  const paginatedData = filtered.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  )
+
   const paidCount = customers.filter((c) => c.payment).length
   const unpaidCount = customers.filter((c) => !c.payment && !c.pending).length
   const pendingCount = customers.filter((c) => c.pending).length
@@ -358,7 +371,7 @@ export default function Payments () {
         <>
           {/* Mobile: Card View */}
           <div className="md:hidden space-y-2">
-            {filtered.map((customer) => (
+            {paginatedData?.map((customer) => (
               <div key={customer.id} className="bg-slate-900 border border-slate-800 rounded-lg p-3">
                 {/* Top row */}
                 <div className="flex items-start justify-between mb-2">
@@ -462,7 +475,7 @@ export default function Payments () {
                 </tr>
               </thead>
               <tbody>
-                {filtered.map((customer, index) => (
+                {paginatedData?.map((customer, index) => (
                   <tr key={customer.id} className={index % 2 === 0 ? "bg-slate-900" : "bg-slate-950"}>
                     <td className="text-white px-4 py-3">{customer.name}</td>
                     <td className="px-4 py-3">
@@ -532,6 +545,60 @@ export default function Payments () {
               </tbody>
             </table>
           </div>
+
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between mt-4 px-2">
+
+              {/* Page Info */}
+              <p className="text-slate-400 text-sm">
+                Page {currentPage} of {totalPages}
+              </p>
+
+              {/* Controls */}
+              <div className="flex items-center gap-2 flex-wrap">
+
+                {/* Prev */}
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  disabled={currentPage === 1}
+                  onClick={() => setCurrentPage((p) => p - 1)}
+                  className="text-slate-400 hover:text-white disabled:opacity-30"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </Button>
+
+                {/* Page Numbers */}
+                {[...Array(totalPages)].map((_, i) => {
+                  const page = i + 1
+                  return (
+                    <button
+                      key={page}
+                      onClick={() => setCurrentPage(page)}
+                      className={`px-2 py-1 text-xs rounded-md transition ${currentPage === page
+                        ? "bg-blue-600 text-white"
+                        : "text-slate-400 hover:text-white hover:bg-slate-800"
+                        }`}
+                    >
+                      {page}
+                    </button>
+                  )
+                })}
+
+                {/* Next */}
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  disabled={currentPage === totalPages}
+                  onClick={() => setCurrentPage((p) => p + 1)}
+                  className="text-slate-400 hover:text-white disabled:opacity-30"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </Button>
+
+              </div>
+            </div>
+          )}
         </>
       )}
 
