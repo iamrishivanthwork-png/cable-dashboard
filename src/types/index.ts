@@ -33,3 +33,17 @@ export interface PendingPayment {
   note: string
   created_at: string
 }
+
+
+export interface PaymentLog {
+  id: string
+  payment_id: string | null
+  customer_id: string
+  action: "paid" | "undo"
+  amount: number | null
+  payment_mode: string | null
+  month: string | null
+  bill_number: string | null
+  performed_by: string | null
+  performed_at: string
+}

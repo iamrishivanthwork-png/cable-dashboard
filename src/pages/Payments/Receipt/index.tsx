@@ -105,11 +105,11 @@ export default function Receipt ({ customer, payment, onClose }: ReceiptProps) {
         }}
       >
         {/* Header */}
-        <div className="text-center border-b border-dashed border-black pb-2 mb-2">
+        <div className="text-center border-b border-dashed border-black pb-2 mb-2 leading-tight">
           <p className="font-bold text-sm uppercase tracking-wide">R.K.R NET COM</p>
-          <p className="text-xs">Digital Cable Tv & Broad Band</p>
-          <p className="text-xs">Kasukkadai St, Thiruthuraipoondi</p>
-          <p className="text-xs">Thiruvarur District</p>
+          <p className="text-[10px]">Digital Cable Tv & Broad Band</p>
+          <p className="text-[10px]">Kasukkadai St, Thiruthuraipoondi</p>
+          <p className="text-[10px]">Thiruvarur District 614713</p>
         </div>
 
         {/* Bill Info */}

@@ -4,7 +4,7 @@ import { Customer, Payment, Profile } from "@/types"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Copy, Download } from "lucide-react"
+import { ChevronDown, ChevronRight, Copy, Download, History } from "lucide-react"
 import jsPDF from "jspdf"
 import html2canvas from "html2canvas"
 import { toast } from "sonner"
@@ -39,6 +39,8 @@ export default function PaidReports () {
   const [collectorFilter, setCollectorFilter] = useState("all")
   const [towns, setTowns] = useState<string[]>([])
   const [collectors, setCollectors] = useState<Profile[]>([])
+  const [logs, setLogs] = useState<any[]>([])
+  const [showLogs, setShowLogs] = useState(false)
   const pdfRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -78,10 +80,33 @@ export default function PaidReports () {
         .filter((p) => collectorFilter === "all" || p.recorded_by === collectorFilter)
 
       setPayments(withDetails)
+
+      // Fetch activity logs for this date
+      const { data: logsData } = await supabase
+        .from("payment_logs")
+        .select("*")
+        .gte("performed_at", `${dateFilter}T00:00:00`)
+        .lte("performed_at", `${dateFilter}T23:59:59`)
+        .order("performed_at", { ascending: false })
+
+      if (logsData) {
+        const enrichedLogs = logsData.map((log) => {
+          const customer = customers.find((c: Customer) => c.id === log.customer_id)
+          const profile = profiles.find((pr: Profile) => pr.id === log.performed_by)
+          return {
+            ...log,
+            customer_name: customer?.name ?? "Unknown",
+            box_number: customer?.box_number ?? "-",
+            performer_name: profile?.full_name ?? "Admin",
+          }
+        })
+        setLogs(enrichedLogs)
+      }
     }
 
     setLoading(false)
   }
+
 
   async function handleDownloadPDF () {
     if (!pdfRef.current) return
@@ -271,6 +296,73 @@ export default function PaidReports () {
               </tr>
             </tfoot>
           </table>
+        )}
+      </div>
+
+      {/* Activity Log */}
+      <div className="mt-6">
+        <Button
+          onClick={() => setShowLogs(!showLogs)}
+          className="flex items-center gap-2 text-slate-300 font-medium mb-3 hover:text-blue-400 transition-all duration-200"
+        >
+          {/* Toggle icon */}
+          {showLogs ? (
+            <ChevronDown className="w-4 h-4 text-slate-400" />
+          ) : (
+            <ChevronRight className="w-4 h-4 text-slate-400" />
+          )}
+
+          {/* Label with icon */}
+          <div className="flex items-center gap-1">
+            <History className="w-4 h-4 text-slate-400" />
+            <span>Activity Log</span>
+          </div>
+
+          {/* Undo badge */}
+          {logs.filter(l => l.action === "undo").length > 0 && (
+            <span className="ml-1 bg-red-900/40 text-red-400 text-xs px-2 py-0.5 rounded-full border border-red-700">
+              {logs.filter(l => l.action === "undo").length} undo
+            </span>
+          )}
+        </Button>
+
+        {showLogs && (
+          <div className="space-y-2">
+            {logs.length === 0 ? (
+              <p className="text-slate-400 text-sm">No activity for this date.</p>
+            ) : (
+              logs.map((log) => (
+                <div
+                  key={log.id}
+                  className={`flex items-center justify-between rounded-lg px-4 py-3 border ${log.action === "undo"
+                    ? "bg-red-900/20 border-red-800"
+                    : "bg-green-900/20 border-green-800"
+                    }`}
+                >
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className={`text-xs font-bold px-2 py-0.5 rounded ${log.action === "undo"
+                        ? "bg-red-600 text-white"
+                        : "bg-green-600 text-white"
+                        }`}>
+                        {log.action === "undo" ? "UNDO" : "PAID"}
+                      </span>
+                      <span className="text-white font-medium text-sm">{log.customer_name}</span>
+                    </div>
+                    <p className="text-slate-400 text-xs mt-1">
+                      Box: {log.box_number} · {log.bill_number ?? "-"} · By: {log.performer_name}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className={`font-bold text-sm ${log.action === "undo" ? "text-red-400" : "text-green-400"}`}>
+                      {log.action === "undo" ? "-" : "+"}₹{log.amount}
+                    </p>
+                    <p className="text-slate-400 text-xs">{formatTime(log.performed_at)}</p>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
         )}
       </div>
 

@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { CheckCircle, XCircle, Clock, FileText, Copy, Eye, Printer } from "lucide-react"
+import { CheckCircle, XCircle, Clock, FileText, Copy, Eye, Printer, IndianRupee, ChevronLeft, CalendarDays, ChevronRight } from "lucide-react"
 import { useForm, Controller } from "react-hook-form"
 import { z } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -106,27 +106,53 @@ export default function Payments () {
     if (!selectedCustomer) return
     setFormLoading(true)
 
-    if (selectedCustomer.pending) {
-      await supabase.from("pending_payments").delete().eq("id", selectedCustomer.pending.id)
-    }
+    try {
+      // Remove pending if exists
+      if (selectedCustomer.pending) {
+        await supabase
+          .from("pending_payments")
+          .delete()
+          .eq("id", selectedCustomer.pending.id)
+      }
 
-    const { data: userData } = await supabase.auth.getUser()
+      const { data: userData } = await supabase.auth.getUser()
 
-    const { error } = await supabase.from("payments").insert([{
-      customer_id: selectedCustomer.id,
-      month,
-      amount: data.amount,
-      payment_mode: data.payment_mode,
-      paid_date: data.paid_date,
-      recorded_by: userData.user?.id ?? null,
-    }])
+      // ✅ STEP 1: Insert into payments
+      const { data: paymentInsert, error: paymentError } = await supabase
+        .from("payments")
+        .insert([{
+          customer_id: selectedCustomer.id,
+          month,
+          amount: data.amount,
+          payment_mode: data.payment_mode,
+          paid_date: data.paid_date,
+          recorded_by: userData.user?.id ?? null,
+        }])
+        .select()
+        .single()
 
-    if (!error) {
+      if (paymentError) throw paymentError
+
+      // ✅ STEP 2: Insert log (after payment success)
+      await supabase.from("payment_logs").insert([{
+        payment_id: paymentInsert.id,
+        customer_id: selectedCustomer.id,
+        action: "paid",
+        amount: data.amount,
+        payment_mode: data.payment_mode,
+        month,
+        bill_number: paymentInsert.bill_number ?? null,
+        performed_by: userData.user?.id ?? null,
+      }])
+
+      // ✅ UI updates
       await fetchData()
       setIsPayDialogOpen(false)
       reset({ amount: 260, payment_mode: "cash", paid_date: getTodayDate() })
+
       toast.success(`Payment recorded for ${selectedCustomer.name}!`)
-    } else {
+    } catch (err) {
+      console.error(err)
       toast.error("Failed to record payment")
     }
 
@@ -140,9 +166,31 @@ export default function Payments () {
 
   async function confirmUnmarkPaid () {
     if (!customerToRemove?.payment) return
-    const { error } = await supabase.from("payments").delete().eq("id", customerToRemove.payment.id)
-    if (!error) { await fetchData(); toast.success("Payment removed") }
-    else toast.error("Failed to remove payment")
+
+    const { data: userData } = await supabase.auth.getUser()
+
+    const { error } = await supabase
+      .from("payments")
+      .delete()
+      .eq("id", customerToRemove.payment.id)
+
+    if (!error) {
+      // Log the undo action
+      await supabase.from("payment_logs").insert([{
+        payment_id: customerToRemove.payment.id,
+        customer_id: customerToRemove.id,
+        action: "undo",
+        amount: customerToRemove.payment.amount,
+        payment_mode: customerToRemove.payment.payment_mode,
+        month: customerToRemove.payment.month,
+        bill_number: customerToRemove.payment.bill_number,
+        performed_by: userData.user?.id ?? null,
+      }])
+      await fetchData()
+      toast.success("Payment removed")
+    } else {
+      toast.error("Failed to remove payment")
+    }
     setIsRemoveDialogOpen(false)
     setCustomerToRemove(null)
   }
@@ -193,17 +241,42 @@ export default function Payments () {
       <div className="flex items-center justify-between mb-4">
         <div>
           <h1 className="text-white text-xl md:text-2xl font-bold">Payments</h1>
-          <p className="text-slate-400 text-sm mt-1">{formatMonth(month)}</p>
+          <div className="mt-2 inline-block bg-slate-800 border border-slate-700 rounded-md px-3 py-1">
+            <p className="text-white text-sm md:text-base font-medium">
+              {formatMonth(month)}
+            </p>
+          </div>
         </div>
-        <div className="flex items-center gap-1 md:gap-2">
-          <Button variant="outline" size="sm" onClick={() => handleMonthChange("prev")} className="border-slate-700 text-slate-300 px-2 md:px-3">
-            ←
+        <div className="flex items-center gap-2 md:gap-3">
+          {/* Previous Month */}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => handleMonthChange("prev")}
+            className="text-slate-400 hover:text-slate-200 hover:bg-slate-800 px-2 md:px-3"
+          >
+            <ChevronLeft className="w-4 h-4" />
           </Button>
-          <Button variant="outline" size="sm" onClick={() => setMonth(getCurrentMonth())} className="border-slate-700 text-slate-300 text-xs md:text-sm px-2 md:px-3">
-            Today
+
+          {/* Today */}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setMonth(getCurrentMonth())}
+            className="text-blue-400 hover:text-blue-300 hover:bg-blue-900/30 flex items-center gap-1 px-3 border border-blue-700"
+          >
+            <CalendarDays className="w-4 h-4" />
+            <span className="hidden md:inline">Today</span>
           </Button>
-          <Button variant="outline" size="sm" onClick={() => handleMonthChange("next")} className="border-slate-700 text-slate-300 px-2 md:px-3">
-            →
+
+          {/* Next Month */}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => handleMonthChange("next")}
+            className="text-slate-400 hover:text-slate-200 hover:bg-slate-800 px-2 md:px-3"
+          >
+            <ChevronRight className="w-4 h-4" />
           </Button>
         </div>
       </div>
@@ -403,7 +476,7 @@ export default function Payments () {
                     <td className="text-slate-300 px-4 py-3">{customer.town}</td>
                     <td className="text-slate-300 px-4 py-3">{customer.street}</td>
                     <td className="px-4 py-3">
-                      {customer.payment ? <Badge className="bg-green-600 text-white">Paid</Badge>
+                      {customer.payment ? <Badge className="bg-green-600 text-white">  <CheckCircle className="w-4 h-4 mr-1" />  Paid</Badge>
                         : customer.pending ? <Badge className="bg-yellow-600 text-white">Pending</Badge>
                           : <Badge className="bg-red-600 text-white">Unpaid</Badge>}
                     </td>
@@ -438,8 +511,8 @@ export default function Payments () {
                             <Button size="sm" onClick={() => {
                               if (month > getCurrentMonth()) { toast.error("Cannot record payment for a future month!"); return }
                               setSelectedCustomer(customer); setIsPayDialogOpen(true)
-                            }} className="bg-green-600 hover:bg-green-700 text-xs">
-                              <CheckCircle className="w-4 h-4 mr-1" />Paid
+                            }} className="bg-violet-600 hover:bg-violet-700 text-xs">
+                              <IndianRupee className="w-4 h-4 mr-1" /> Quick pay
                             </Button>
                             <Button size="sm" variant="ghost" onClick={() => {
                               if (month > getCurrentMonth()) { toast.error("Cannot set pending for a future month!"); return }
