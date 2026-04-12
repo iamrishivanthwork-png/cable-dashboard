@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Plus, Pencil, Trash2, Copy, Eye, Phone } from "lucide-react"
+import { Plus, Pencil, Trash2, Copy, Eye, Phone, ChevronRight, ChevronLeft } from "lucide-react"
 import { toast } from "sonner"
 import CustomerForm, { CustomerFormData } from "./CustomerForm"
 import { useNavigate } from "react-router-dom"
@@ -27,6 +27,8 @@ export default function Customers () {
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null)
   const [customerToDelete, setCustomerToDelete] = useState<Customer | null>(null)
   const [formLoading, setFormLoading] = useState(false)
+  const [currentPage, setCurrentPage] = useState(1)
+  const itemsPerPage = 10
 
   useEffect(() => {
     fetchCustomers()
@@ -38,10 +40,14 @@ export default function Customers () {
       setStreets([])
     } else {
       const townCustomers = customers.filter((c) => c.town === townFilter)
-      const uniqueStreets = [...new Set(townCustomers.map((c) => c.street))]
+      const uniqueStreets = [...new Set(townCustomers?.map((c) => c.street))]
       setStreets(uniqueStreets)
     }
   }, [townFilter, customers])
+
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [search, townFilter, streetFilter])
 
   async function fetchCustomers () {
     setLoading(true)
@@ -52,7 +58,7 @@ export default function Customers () {
 
     if (!error && data) {
       setCustomers(data)
-      const uniqueTowns = [...new Set(data.map((c) => c.town))]
+      const uniqueTowns = [...new Set(data?.map((c) => c.town))]
       setTowns(uniqueTowns)
     }
     setLoading(false)
@@ -114,6 +120,14 @@ export default function Customers () {
     return townMatch && streetMatch && searchMatch
   })
 
+  // Pagination
+  const totalPages = Math.ceil(filtered.length / itemsPerPage)
+
+  const paginatedData = filtered.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  )
+
   return (
     <div>
       {/* Header */}
@@ -144,7 +158,7 @@ export default function Customers () {
           </SelectTrigger>
           <SelectContent className="bg-slate-800 border-slate-700">
             <SelectItem value="all" className="text-white">All Towns</SelectItem>
-            {towns.map((town) => (
+            {towns?.map((town) => (
               <SelectItem key={town} value={town} className="text-white">{town}</SelectItem>
             ))}
           </SelectContent>
@@ -161,7 +175,7 @@ export default function Customers () {
           >
             All Streets
           </button>
-          {streets.map((street) => (
+          {streets?.map((street) => (
             <button
               key={street}
               onClick={() => setStreetFilter(street)}
@@ -182,7 +196,7 @@ export default function Customers () {
         <>
           {/* Mobile: Card View */}
           <div className="md:hidden space-y-2">
-            {filtered.map((customer) => (
+            {paginatedData?.map((customer) => (
               <div key={customer.id} className="bg-slate-900 border border-slate-800 rounded-lg p-3">
                 <div className="flex items-start justify-between mb-2">
                   <div>
@@ -260,7 +274,7 @@ export default function Customers () {
                 </tr>
               </thead>
               <tbody>
-                {filtered.map((customer, index) => (
+                {paginatedData?.map((customer, index) => (
                   <tr key={customer.id} className={index % 2 === 0 ? "bg-slate-900" : "bg-slate-950"}>
                     <td className="text-white px-4 py-3">{customer.name}</td>
                     <td className="px-4 py-3">
@@ -309,6 +323,61 @@ export default function Customers () {
               </tbody>
             </table>
           </div>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between mt-4 px-2">
+
+              {/* Left Info */}
+              <p className="text-slate-400 text-sm">
+                Page {currentPage} of {totalPages}
+              </p>
+
+              {/* Controls */}
+              <div className="flex items-center gap-2">
+
+                {/* Prev */}
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  disabled={currentPage === 1}
+                  onClick={() => setCurrentPage((p) => p - 1)}
+                  className="text-slate-400 hover:text-white disabled:opacity-30"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </Button>
+
+                {/* Page Numbers */}
+                {[...Array(totalPages)].map((_, i) => {
+                  const page = i + 1
+                  return (
+                    <button
+                      key={page}
+                      onClick={() => setCurrentPage(page)}
+                      className={`px-2 py-1 text-xs rounded-md transition ${currentPage === page
+                        ? "bg-blue-600 text-white"
+                        : "text-slate-400 hover:text-white hover:bg-slate-800"
+                        }`}
+                    >
+                      {page}
+                    </button>
+                  )
+                })}
+
+                {/* Next */}
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  disabled={currentPage === totalPages}
+                  onClick={() => setCurrentPage((p) => p + 1)}
+                  className="text-slate-400 hover:text-white disabled:opacity-30"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </Button>
+
+              </div>
+            </div>
+          )}
         </>
       )}
 
