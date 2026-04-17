@@ -114,11 +114,11 @@ export default function Receipt ({ customer, payment, onClose }: ReceiptProps) {
 
         {/* Bill Info */}
         <div className="flex justify-between mb-1">
-          <span className="text-xs">Bill No:</span>
+          <span className="text-xs font-bold">Bill No:</span>
           <span className="text-xs font-bold">{payment.bill_number}</span>
         </div>
         <div className="flex justify-between mb-2">
-          <span className="text-xs">Date:</span>
+          <span className="text-xs font-bold">Date:</span>
           <span className="text-xs font-bold">{payment.paid_date}</span>
         </div>
 
@@ -128,20 +128,20 @@ export default function Receipt ({ customer, payment, onClose }: ReceiptProps) {
         {/* Customer Details */}
         <p className="text-xs font-bold uppercase mb-1">Customer</p>
         <div className="flex justify-between mb-1">
-          <span className="text-xs text-gray-600">Name</span>
-          <span className="text-xs font-medium">{customer.name}</span>
+          <span className="text-xs font-bold ">Name</span>
+          <span className="text-xs font-bold">{customer.name}</span>
         </div>
         <div className="flex justify-between mb-1">
-          <span className="text-xs text-gray-600">Box No</span>
-          <span className="text-xs font-medium">{customer.box_number}</span>
+          <span className="text-xs  font-bold">Box No</span>
+          <span className="text-xs font-bold">{customer.box_number}</span>
         </div>
         <div className="flex justify-between mb-1">
-          <span className="text-xs text-gray-600">Street</span>
-          <span className="text-xs font-medium">{customer.street}</span>
+          <span className="text-xs  font-bold">Street</span>
+          <span className="text-xs font-bold">{customer.street}</span>
         </div>
         <div className="flex justify-between mb-2">
-          <span className="text-xs text-gray-600">Town</span>
-          <span className="text-xs font-medium">{customer.town}</span>
+          <span className="text-xs  font-bold">Town</span>
+          <span className="text-xs font-bold">{customer.town}</span>
         </div>
 
         {/* Divider */}
@@ -150,12 +150,12 @@ export default function Receipt ({ customer, payment, onClose }: ReceiptProps) {
         {/* Payment Details */}
         <p className="text-xs font-bold uppercase mb-1">Payment</p>
         <div className="flex justify-between mb-1">
-          <span className="text-xs text-gray-600">Month</span>
-          <span className="text-xs font-medium">{payment.month}</span>
+          <span className="text-xs font-bold">Month</span>
+          <span className="text-xs font-bold">{payment.month}</span>
         </div>
         <div className="flex justify-between mb-2">
-          <span className="text-xs text-gray-600">Mode</span>
-          <span className="text-xs font-medium">
+          <span className="text-xs font-bold">Mode</span>
+          <span className="text-xs font-bold">
             {payment.payment_mode === "gpay" ? "GPay" : "Cash"}
           </span>
         </div>
@@ -174,8 +174,8 @@ export default function Receipt ({ customer, payment, onClose }: ReceiptProps) {
 
         {/* Footer */}
         <div className="text-center">
-          <p className="text-xs">Thank you!</p>
-          <p className="text-xs text-gray-500">Computer generated receipt</p>
+          <p className="text-xs font-bold">Thank you!</p>
+          <p className="text-xs text-gray-500 font-bold">Computer generated receipt</p>
         </div>
       </div>
 

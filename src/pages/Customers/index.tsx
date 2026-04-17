@@ -144,16 +144,16 @@ export default function Customers () {
       </div>
 
       {/* Search + Town Filter */}
-      <div className="flex gap-2 mb-4 flex-wrap">
+      <div className="flex flex-col sm:flex-row gap-2 mb-4">
         <Input
           type="text"
           placeholder="Search name or box..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="bg-slate-800 border-slate-700 text-white flex-1 min-w-0"
+          className="bg-slate-800 border-slate-700 text-white flex-1 min-w-0 w-full"
         />
         <Select value={townFilter} onValueChange={setTownFilter}>
-          <SelectTrigger className="w-32 md:w-40 bg-slate-800 border-slate-700 text-white shrink-0">
+          <SelectTrigger className="w-32 md:w-40 bg-slate-800 border-slate-700 text-white shrink-0 w-full sm:w-40">
             <SelectValue placeholder="All Towns" />
           </SelectTrigger>
           <SelectContent className="bg-slate-800 border-slate-700">
@@ -167,10 +167,10 @@ export default function Customers () {
 
       {/* Street Tabs */}
       {townFilter !== "all" && streets.length > 0 && (
-        <div className="flex gap-2 mb-4 flex-wrap">
+        <div className="flex gap-2 mb-4 overflow-x-auto pb-1">
           <button
             onClick={() => setStreetFilter("all")}
-            className={`px-3 py-1 rounded-full text-xs md:text-sm transition-colors ${streetFilter === "all" ? "bg-blue-600 text-white" : "bg-slate-800 text-slate-300 hover:bg-slate-700"
+            className={`whitespace-nowrap shrink-0 px-3 py-1 rounded-full text-xs md:text-sm transition-colors ${streetFilter === "all" ? "bg-blue-600 text-white" : "bg-slate-800 text-slate-300 hover:bg-slate-700"
               }`}
           >
             All Streets
@@ -179,7 +179,7 @@ export default function Customers () {
             <button
               key={street}
               onClick={() => setStreetFilter(street)}
-              className={`px-3 py-1 rounded-full text-xs md:text-sm transition-colors ${streetFilter === street ? "bg-blue-600 text-white" : "bg-slate-800 text-slate-300 hover:bg-slate-700"
+              className={`whitespace-nowrap shrink-0 px-3 py-1 rounded-full text-xs md:text-sm transition-colors ${streetFilter === street ? "bg-blue-600 text-white" : "bg-slate-800 text-slate-300 hover:bg-slate-700"
                 }`}
             >
               {street}
@@ -326,7 +326,7 @@ export default function Customers () {
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className="flex items-center justify-between mt-4 px-2">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mt-4 px-2">
 
               {/* Left Info */}
               <p className="text-slate-400 text-sm">
@@ -334,7 +334,7 @@ export default function Customers () {
               </p>
 
               {/* Controls */}
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1 flex-wrap max-w-full overflow-x-auto scrollbar-hide">
 
                 {/* Prev */}
                 <Button
@@ -347,22 +347,64 @@ export default function Customers () {
                   <ChevronLeft className="w-4 h-4" />
                 </Button>
 
-                {/* Page Numbers */}
-                {[...Array(totalPages)].map((_, i) => {
-                  const page = i + 1
-                  return (
+                {/* First Page */}
+                {currentPage > 2 && (
+                  <>
                     <button
-                      key={page}
-                      onClick={() => setCurrentPage(page)}
-                      className={`px-2 py-1 text-xs rounded-md transition ${currentPage === page
-                        ? "bg-blue-600 text-white"
-                        : "text-slate-400 hover:text-white hover:bg-slate-800"
-                        }`}
+                      onClick={() => setCurrentPage(1)}
+                      className="px-3 py-1 text-sm rounded-md text-slate-400 hover:text-white hover:bg-slate-800 transition"
                     >
-                      {page}
+                      1
                     </button>
-                  )
-                })}
+
+                    {currentPage > 3 && (
+                      <span className="px-2 text-slate-500">...</span>
+                    )}
+                  </>
+                )}
+
+                {/* Previous Page */}
+                {currentPage > 1 && (
+                  <button
+                    onClick={() => setCurrentPage(currentPage - 1)}
+                    className="px-3 py-1 text-sm rounded-md text-slate-400 hover:text-white hover:bg-slate-800 transition"
+                  >
+                    {currentPage - 1}
+                  </button>
+                )}
+
+                {/* Current Page */}
+                <button
+                  className="px-3 py-1 text-sm rounded-md bg-blue-600 text-white"
+                >
+                  {currentPage}
+                </button>
+
+                {/* Next Page */}
+                {currentPage < totalPages && (
+                  <button
+                    onClick={() => setCurrentPage(currentPage + 1)}
+                    className="px-3 py-1 text-sm rounded-md text-slate-400 hover:text-white hover:bg-slate-800 transition"
+                  >
+                    {currentPage + 1}
+                  </button>
+                )}
+
+                {/* Last Page */}
+                {currentPage < totalPages - 1 && (
+                  <>
+                    {currentPage < totalPages - 2 && (
+                      <span className="px-2 text-slate-500">...</span>
+                    )}
+
+                    <button
+                      onClick={() => setCurrentPage(totalPages)}
+                      className="px-3 py-1 text-sm rounded-md text-slate-400 hover:text-white hover:bg-slate-800 transition"
+                    >
+                      {totalPages}
+                    </button>
+                  </>
+                )}
 
                 {/* Next */}
                 <Button

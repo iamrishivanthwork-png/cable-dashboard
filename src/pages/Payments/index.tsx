@@ -439,8 +439,8 @@ export default function Payments () {
                       <Button size="sm" onClick={() => {
                         if (month > getCurrentMonth()) { toast.error("Cannot record payment for a future month!"); return }
                         setSelectedCustomer(customer); setIsPayDialogOpen(true)
-                      }} className="bg-green-600 hover:bg-green-700 h-7 px-2 text-xs">
-                        <CheckCircle className="w-3 h-3 mr-1" />Paid
+                      }} className="bg-violet-600 hover:bg-violet-700 text-xs">
+                        <IndianRupee className="w-4 h-4 mr-1" /> Quick pay
                       </Button>
                       <Button size="sm" variant="ghost" onClick={() => {
                         if (month > getCurrentMonth()) { toast.error("Cannot set pending for a future month!"); return }
@@ -547,7 +547,7 @@ export default function Payments () {
           </div>
 
           {totalPages > 1 && (
-            <div className="flex items-center justify-between mt-4 px-2">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mt-4 px-2">
 
               {/* Page Info */}
               <p className="text-slate-400 text-sm">
@@ -555,7 +555,7 @@ export default function Payments () {
               </p>
 
               {/* Controls */}
-              <div className="flex items-center gap-2 flex-wrap">
+              <div className="flex items-center gap-1 flex-wrap">
 
                 {/* Prev */}
                 <Button
@@ -568,22 +568,62 @@ export default function Payments () {
                   <ChevronLeft className="w-4 h-4" />
                 </Button>
 
-                {/* Page Numbers */}
-                {[...Array(totalPages)].map((_, i) => {
-                  const page = i + 1
-                  return (
+                {/* First Page */}
+                {currentPage > 2 && (
+                  <>
                     <button
-                      key={page}
-                      onClick={() => setCurrentPage(page)}
-                      className={`px-2 py-1 text-xs rounded-md transition ${currentPage === page
-                        ? "bg-blue-600 text-white"
-                        : "text-slate-400 hover:text-white hover:bg-slate-800"
-                        }`}
+                      onClick={() => setCurrentPage(1)}
+                      className="px-3 py-1 text-sm rounded-md text-slate-400 hover:text-white hover:bg-slate-800 transition"
                     >
-                      {page}
+                      1
                     </button>
-                  )
-                })}
+
+                    {currentPage > 3 && (
+                      <span className="px-2 text-slate-500">...</span>
+                    )}
+                  </>
+                )}
+
+                {/* Previous Page */}
+                {currentPage > 1 && (
+                  <button
+                    onClick={() => setCurrentPage(currentPage - 1)}
+                    className="px-3 py-1 text-sm rounded-md text-slate-400 hover:text-white hover:bg-slate-800 transition"
+                  >
+                    {currentPage - 1}
+                  </button>
+                )}
+
+                {/* Current Page */}
+                <button className="px-3 py-1 text-sm rounded-md bg-blue-600 text-white">
+                  {currentPage}
+                </button>
+
+                {/* Next Page */}
+                {currentPage < totalPages && (
+                  <button
+                    onClick={() => setCurrentPage(currentPage + 1)}
+                    className="px-3 py-1 text-sm rounded-md text-slate-400 hover:text-white hover:bg-slate-800 transition"
+                  >
+                    {currentPage + 1}
+                  </button>
+                )}
+
+                {/* Last Page */}
+                {currentPage < totalPages - 1 && (
+                  <>
+                    {currentPage < totalPages - 2 && (
+                      <span className="px-2 text-slate-500">...</span>
+                    )}
+
+                    <button
+                      onClick={() => setCurrentPage(totalPages)}
+                      className="px-3 py-1 text-sm rounded-md text-slate-400 hover:text-white hover:bg-slate-800 transition"
+                    >
+                      {totalPages}
+                    </button>
+                  </>
+                )}
 
                 {/* Next */}
                 <Button
