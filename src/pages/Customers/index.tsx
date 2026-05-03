@@ -167,7 +167,7 @@ export default function Customers () {
 
       {/* Street Tabs */}
       {townFilter !== "all" && streets.length > 0 && (
-        <div className="flex gap-2 mb-4 overflow-x-auto pb-1">
+        <div className="flex gap-2 mb-3 flex-wrap">
           <button
             onClick={() => setStreetFilter("all")}
             className={`whitespace-nowrap shrink-0 px-3 py-1 rounded-full text-xs md:text-sm transition-colors ${streetFilter === "all" ? "bg-blue-600 text-white" : "bg-slate-800 text-slate-300 hover:bg-slate-700"
